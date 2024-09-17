@@ -1,0 +1,34 @@
+{
+    "name": "berry-bot-js",
+    "version": "0.0.1",
+    "description": "",
+    "main": "index.ts",
+    "type": "module",
+    "scripts": {
+        "start": "vite",
+        "build": "tsc && vite build",
+        "preview": "vite preview",
+        "lint": "eslint .",
+        "types": "tsc --noEmit"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+ssh://git@github.com/jhayashi1/berry-bot-js.git"
+    },
+    "author": "jhayashi1",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/jhayashi1/berry-bot-js/issues"
+    },
+    "dependencies": {
+        "discord.js": "^14.16.2"
+    },
+    "homepage": "https://github.com/jhayashi1/berry-bot-js#readme",
+    "devDependencies": {
+        "@types/node": "^22.5.5",
+        "@typescript-eslint/eslint-plugin": "^8.6.0",
+        "eslint": "^9.10.0",
+        "typescript": "<5.2.0",
+        "vite": "^5.4.6"
+    }
+}

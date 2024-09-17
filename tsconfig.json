@@ -1,0 +1,26 @@
+{
+    "include": ["src"],
+    "compilerOptions": {
+        "target": "esnext",
+        "lib": ["esnext"],
+
+        "types": ["node"],
+        "allowJs": true,
+        "strict": true,
+        "skipLibCheck": true,
+
+        "module": "esnext",
+        "moduleResolution": "bundler",
+        "allowArbitraryExtensions": true,
+
+        "isolatedModules": true,
+        "esModuleInterop": true,
+        "verbatimModuleSyntax": true,
+        "experimentalDecorators": true,
+        "resolveJsonModule": true,
+
+        "noErrorTruncation": true,
+        "disableSizeLimit": true,
+    },
+}
+  
