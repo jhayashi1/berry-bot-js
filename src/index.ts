@@ -1,25 +1,68 @@
 import 'dotenv/config';
-import type {SlashCommandBuilder} from 'discord.js';
-import {Client as DiscordClient, Collection, Events, GatewayIntentBits} from 'discord.js';
+import type {Collection} from 'discord.js';
+import {Client as DiscordClient, Events, GatewayIntentBits, REST, Routes} from 'discord.js';
+import {loadCommands} from './utils';
 
 interface Client extends DiscordClient {
-    commands?: Collection<string, SlashCommandBuilder>;
+    commands?: Collection<string, unknown> | unknown[];
 }
 
-const token = process.env.TOKEN;
+const token = process.env.TOKEN ?? '';
 
-const initClient = (): Client => {
+const initClient = async (): Promise<Client> => {
     const client: Client = new DiscordClient({intents: [GatewayIntentBits.MessageContent, GatewayIntentBits.Guilds]});
-    client.commands = new Collection();
+    client.commands = await loadCommands();
 
     client.once(Events.ClientReady, (readyClient) => {
         console.log(`logged in as ${readyClient.user.tag}`);
     });
 
+    // Construct and prepare an instance of the REST module
+    const rest = new REST().setToken(token);
+
+    // and deploy your commands!
+    (async () => {
+        try {
+            console.log(`Started refreshing ${client.commands.length} application (/) commands.`);
+
+            // The put method is used to fully refresh all commands in the guild with the current set
+            const data = await rest.put(
+                Routes.applicationGuildCommands(process.env.APPLICATION_ID, process.env.GUILD_ID),
+                {body: client.commands}
+            );
+
+            console.log(`Successfully reloaded ${data.length} application (/) commands.`);
+        } catch (error) {
+        // And of course, make sure you catch and log any errors!
+            console.error(error);
+        }
+    })();
 
     return client;
 };
 
-const client = initClient();
+const client = await initClient();
+
+client.on(Events.InteractionCreate, async interaction => {
+    if (!interaction.isChatInputCommand()) return;
+
+    const command = interaction.client.commands.get(interaction.commandName);
+
+    if (!command) {
+        console.error(`No command matching ${interaction.commandName} was found.`);
+        return;
+    }
+
+    try {
+        await command.execute(interaction);
+    } catch (error) {
+        console.error(error);
+        if (interaction.replied || interaction.deferred) {
+            await interaction.followUp({content: 'There was an error while executing this command!', ephemeral: true});
+        } else {
+            await interaction.reply({content: 'There was an error while executing this command!', ephemeral: true});
+        }
+    }
+});
 
 client.login(token);
