@@ -1,6 +1,16 @@
-import type {ChatInputCommandInteraction} from 'discord.js';
 import {SlashCommandBuilder} from 'discord.js';
+import {DescribeInstancesCommand, EC2Client, StartInstancesCommand, StopInstancesCommand, waitUntilInstanceRunning, type DescribeInstancesCommandOutput} from '@aws-sdk/client-ec2';
+import type {ChatInputCommandInteraction, SlashCommandSubcommandsOnlyBuilder} from 'discord.js';
 import type {Command} from '../types';
+import 'dotenv/config';
+
+const ec2 = new EC2Client({region: 'us-east-1'});
+
+const actions = [
+    {name: 'start', description: 'Start game server'},
+    {name: 'stop', description: 'Stop game server'},
+    {name: 'status', description: 'Get game server status'},
+];
 
 const servers = [
     {name: 'minecraft', value: process.env.MINECRAFT_INSTANCE ?? ''},
@@ -8,19 +18,91 @@ const servers = [
     {name: 'grug', value: process.env.GRUG_INSTANCE ?? ''},
 ];
 
-const execute = async (interaction: ChatInputCommandInteraction): Promise<void> => {
-    const extra = interaction.options.getString('action');
-    await interaction.reply(`Pong! ${extra}`);
+const startInstanceAndWait = async (instanceId: string): Promise<string> => {
+    const startResp = await ec2.send(new StartInstancesCommand({InstanceIds: [instanceId], DryRun: true}));
+    const status = startResp.$metadata.httpStatusCode;
+
+    if (status !== 200) {
+        return `Server start request returned status: ${status}`;
+    }
+
+    const waitResponse = await waitUntilInstanceRunning(
+        {client: ec2, maxWaitTime: 30},
+        {InstanceIds: [instanceId]}
+    );
+
+    if (waitResponse.state !== 'SUCCESS') {
+        return `Waiter returned status: ${waitResponse.state}`;
+    }
+
+    const resp = await getInstanceById(instanceId);
+    const instanceInfo = resp.Reservations?.[0].Instances?.[0];
+    const ip = instanceInfo?.PublicIpAddress;
+
+    return `Successfully started server with ip: ${ip}`;
 };
 
-export const serverCommand: Command = {
-    data: new SlashCommandBuilder()
+const stopInstance = async (instanceId: string): Promise<string> => {
+    const resp = await ec2.send(new StopInstancesCommand({InstanceIds: [instanceId], DryRun: true}));
+    const status = resp.$metadata.httpStatusCode;
+
+    if (status !== 200) {
+        return `Server stop request returned status: ${status}`;
+    }
+
+    return 'Server successfully stopped';
+};
+
+const getInstanceById = async (instanceId: string): Promise<DescribeInstancesCommandOutput> => {
+    return await ec2.send(new DescribeInstancesCommand({InstanceIds: [instanceId]}));
+};
+
+const execute = async (interaction: ChatInputCommandInteraction): Promise<void> => {
+    const subcommand = interaction.options.getSubcommand();
+    const instanceId = interaction.options.getString('target');
+
+    if (!instanceId) {
+        interaction.reply('Could not find instance id');
+        return;
+    }
+
+    try {
+        await interaction.deferReply();
+
+        if (subcommand === 'start') {
+            const result = await startInstanceAndWait(instanceId);
+            interaction.editReply(result);
+        } else if (subcommand === 'stop') {
+            const result = await stopInstance(instanceId);
+            interaction.editReply(result);
+        } else {
+            const resp = await getInstanceById(instanceId);
+            const instance = resp.Reservations?.[0].Instances?.[0];
+            const state = instance?.State?.Name;
+
+            if (state === 'running') {
+                const ip = instance?.PublicIpAddress;
+                interaction.editReply(`Server is currently running with ip: ${ip}`);
+            } else {
+                interaction.editReply(`Server is currently in state: ${state}`);
+            }
+        }
+    } catch (e) {
+        interaction.editReply(`Exception occurred while running: ${e}`);
+    }
+};
+
+const createServerCommand = (): SlashCommandSubcommandsOnlyBuilder => {
+    const command = new SlashCommandBuilder()
         .setName('server')
-        .setDescription('Perform actions on game servers')
-        .addSubcommand((subcommand) => (
-            subcommand.setName('start')
-                .setDescription('Start game server')
+        .setDescription('Perform actions on game servers');
+
+    actions.forEach((action) => (
+        command.addSubcommand((subcommand) => (
+            subcommand.setName(action.name)
+                .setDescription(action.description)
                 .addStringOption((option) => {
+                    console.log(`adding subcommand ${action.name}`);
                     option.setName('target')
                         .setDescription('Target Game Server')
                         .setRequired(true);
@@ -31,6 +113,13 @@ export const serverCommand: Command = {
 
                     return option;
                 })
-        )),
+        ))
+    ));
+
+    return command;
+};
+
+export const serverCommand: Command = {
+    data: createServerCommand(),
     execute,
 };
