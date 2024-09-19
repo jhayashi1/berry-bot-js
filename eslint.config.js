@@ -25,6 +25,7 @@ const commonRules = {
         functions: 'never',
         objects: 'always-multiline',
     }],
+    'prefer-template': 2,
 };
 
 const typescriptRules = {

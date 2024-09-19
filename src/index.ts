@@ -4,7 +4,7 @@ import {Client as DiscordClient, Events, GatewayIntentBits, REST, Routes} from '
 import {loadCommands} from './utils';
 
 interface Client extends DiscordClient {
-    commands?: Collection<string, unknown> | unknown[];
+    commands?: Collection<string, unknown>;
 }
 
 const token = process.env.TOKEN ?? '';
@@ -23,12 +23,12 @@ const initClient = async (): Promise<Client> => {
     // and deploy your commands!
     (async () => {
         try {
-            console.log(`Started refreshing ${client.commands.length} application (/) commands.`);
+            console.log(`Started refreshing ${client.commands!.size} application (/) commands.`);
 
             // The put method is used to fully refresh all commands in the guild with the current set
             const data = await rest.put(
-                Routes.applicationGuildCommands(process.env.APPLICATION_ID, process.env.GUILD_ID),
-                {body: client.commands}
+                Routes.applicationCommands(process.env.APPLICATION_ID),
+                {body: Array.from(client.commands!.values()).map((command) => command.data.toJSON())}
             );
 
             console.log(`Successfully reloaded ${data.length} application (/) commands.`);
