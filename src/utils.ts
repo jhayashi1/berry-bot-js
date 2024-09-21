@@ -38,12 +38,12 @@ export const refreshCommands = async (client: Client, token: string): Promise<vo
 
     try {
         console.log(`Started refreshing ${client.commands?.size} application (/) commands.`);
-        const commands: Command[] = Array.from(client.commands?.values() ?? []);
+        const commands: Command[] = Array.from(client.commands?.values() as IterableIterator<Command> ?? []);
 
         const data = await rest.put(
             Routes.applicationCommands(process.env.APPLICATION_ID ?? ''),
             {body: commands.map((command: Command) => command.data.toJSON())}
-        );
+        ) as unknown[];
 
         console.log(`Successfully reloaded ${data.length} application (/) commands.`);
     } catch (error) {
