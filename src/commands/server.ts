@@ -60,36 +60,33 @@ const getInstanceById = async (instanceId: string): Promise<DescribeInstancesCom
 const execute = async (interaction: ChatInputCommandInteraction): Promise<void> => {
     const subcommand = interaction.options.getSubcommand();
     const instanceId = interaction.options.getString('target');
+    let result = '';
 
     if (!instanceId) {
         interaction.reply('Could not find instance id');
         return;
     }
 
-    try {
-        await interaction.deferReply();
+    await interaction.deferReply();
 
-        if (subcommand === 'start') {
-            const result = await startInstanceAndWait(instanceId);
-            interaction.editReply(result);
-        } else if (subcommand === 'stop') {
-            const result = await stopInstance(instanceId);
-            interaction.editReply(result);
+    if (subcommand === 'start') {
+        result = await startInstanceAndWait(instanceId);
+    } else if (subcommand === 'stop') {
+        result = await stopInstance(instanceId);
+    } else if (subcommand === 'status') {
+        const resp = await getInstanceById(instanceId);
+        const instance = resp.Reservations?.[0].Instances?.[0];
+        const state = instance?.State?.Name;
+
+        if (state === 'running') {
+            const ip = instance?.PublicIpAddress;
+            result = `Server is currently running with ip: ${ip}`;
         } else {
-            const resp = await getInstanceById(instanceId);
-            const instance = resp.Reservations?.[0].Instances?.[0];
-            const state = instance?.State?.Name;
-
-            if (state === 'running') {
-                const ip = instance?.PublicIpAddress;
-                interaction.editReply(`Server is currently running with ip: ${ip}`);
-            } else {
-                interaction.editReply(`Server is currently in state: ${state}`);
-            }
+            result = `Server is currently in state: ${state}`;
         }
-    } catch (e) {
-        interaction.editReply(`Exception occurred while running: ${e}`);
     }
+
+    interaction.editReply(result);
 };
 
 const createServerCommand = (): SlashCommandSubcommandsOnlyBuilder => {

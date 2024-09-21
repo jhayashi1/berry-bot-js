@@ -1,8 +1,10 @@
-import {Collection} from 'discord.js';
+import {Collection, REST, Routes} from 'discord.js';
 import {readdirSync} from 'node:fs';
 import {fileURLToPath, pathToFileURL} from 'node:url';
 
 import path from 'node:path';
+import 'dotenv/config';
+import type {Client, Command} from './types';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -29,4 +31,22 @@ export const loadCommands = async (): Promise<Collection<string, unknown>> => {
 
     console.log('finished fetching commands');
     return commands;
+};
+
+export const refreshCommands = async (client: Client, token: string): Promise<void> => {
+    const rest = new REST().setToken(token);
+
+    try {
+        console.log(`Started refreshing ${client.commands?.size} application (/) commands.`);
+        const commands: Command[] = Array.from(client.commands?.values() ?? []);
+
+        const data = await rest.put(
+            Routes.applicationCommands(process.env.APPLICATION_ID ?? ''),
+            {body: commands.map((command: Command) => command.data.toJSON())}
+        );
+
+        console.log(`Successfully reloaded ${data.length} application (/) commands.`);
+    } catch (error) {
+        console.error(error);
+    }
 };

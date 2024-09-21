@@ -1,11 +1,7 @@
 import 'dotenv/config';
-import type {Collection} from 'discord.js';
-import {Client as DiscordClient, Events, GatewayIntentBits, REST, Routes} from 'discord.js';
-import {loadCommands} from './utils';
-
-interface Client extends DiscordClient {
-    commands?: Collection<string, unknown>;
-}
+import {Client as DiscordClient, Events, GatewayIntentBits} from 'discord.js';
+import {loadCommands, refreshCommands} from './utils';
+import type {Client} from './types';
 
 const token = process.env.TOKEN ?? '';
 
@@ -17,26 +13,7 @@ const initClient = async (): Promise<Client> => {
         console.log(`logged in as ${readyClient.user.tag}`);
     });
 
-    // Construct and prepare an instance of the REST module
-    const rest = new REST().setToken(token);
-
-    // and deploy your commands!
-    (async () => {
-        try {
-            console.log(`Started refreshing ${client.commands!.size} application (/) commands.`);
-
-            // The put method is used to fully refresh all commands in the guild with the current set
-            const data = await rest.put(
-                Routes.applicationCommands(process.env.APPLICATION_ID),
-                {body: Array.from(client.commands!.values()).map((command) => command.data.toJSON())}
-            );
-
-            console.log(`Successfully reloaded ${data.length} application (/) commands.`);
-        } catch (error) {
-        // And of course, make sure you catch and log any errors!
-            console.error(error);
-        }
-    })();
+    await refreshCommands(client, token);
 
     return client;
 };
