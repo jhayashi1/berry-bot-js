@@ -1,6 +1,8 @@
-import * as esbuild from 'esbuild';
+import {build} from 'esbuild';
+import {execSync} from 'node:child_process';
+import 'dotenv/config';
 
-esbuild.build({
+build({
     entryPoints: ['src/index.ts'],
     outdir: 'dist',
     format: 'cjs',
@@ -13,5 +15,14 @@ esbuild.build({
     keepNames: true,
     sourcemap: true,
     sourcesContent: false,
-    logLevel: 'info'
+    logLevel: 'info',
+    define: {
+        'process.env.TOKEN': JSON.stringify(process.env.TOKEN),
+        'process.env.APPLICATION_ID': JSON.stringify(process.env.APPLICATION_ID),
+        'process.env.MINECRAFT_INSTANCE': JSON.stringify(process.env.MINECRAFT_INSTANCE),
+        'process.env.FACTORIO_INSTANCE': JSON.stringify(process.env.FACTORIO_INSTANCE),
+        'process.env.GRUG_INSTANCE': JSON.stringify(process.env.GRUG_INSTANCE),
+    }
 }).catch(() => process.exit(1));
+
+execSync('tar -czvf ./dist/berry.tar.gz ./dist', {cwd: process.cwd()});
