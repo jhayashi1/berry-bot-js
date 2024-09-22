@@ -1,0 +1,1 @@
+export {serverCommand} from './server';

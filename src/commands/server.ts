@@ -99,7 +99,6 @@ const createServerCommand = (): SlashCommandSubcommandsOnlyBuilder => {
             subcommand.setName(action.name)
                 .setDescription(action.description)
                 .addStringOption((option) => {
-                    console.log(`adding subcommand ${action.name}`);
                     option.setName('target')
                         .setDescription('Target Game Server')
                         .setRequired(true);

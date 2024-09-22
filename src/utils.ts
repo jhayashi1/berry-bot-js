@@ -1,36 +1,21 @@
-import {Collection, REST, Routes} from 'discord.js';
-import {readdirSync} from 'node:fs';
-import {fileURLToPath, pathToFileURL} from 'node:url';
+import {Collection} from 'discord.js';
+import {REST, Routes} from 'discord.js';
+import type {Client, Command, Event} from './types';
+import * as commands from './commands/index';
+import * as events from './events/index';
 
-import path from 'node:path';
 import 'dotenv/config';
-import type {Client, Command} from './types';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+export const loadCommands = async (): Promise<Collection<string, Command>> => {
+    const commandsColl = new Collection<string, Command>();
 
-export const loadCommands = async (): Promise<Collection<string, unknown>> => {
     console.log('fetching commands');
 
-    const folderPath = path.join(__dirname, 'commands');
-    const commandFolder = readdirSync(folderPath);
-
-    const commands = await commandFolder.reduce<Promise<Collection<string, unknown>>>(async (accPromise, file) => {
-        const acc = await accPromise;
-        const filePath = path.join(folderPath, file);
-        const fileUrl = pathToFileURL(filePath).href;
-        const commandImport = await import(fileUrl);
-        Object.keys(commandImport).forEach((name) => {
-            const command = commandImport[name];
-            acc.set(command.data.name, command);
-            console.log(`added ${name} command`);
-        });
-
-        return acc;
-    }, Promise.resolve(new Collection<string, unknown>()));
+    Object.values(commands).forEach((command) => commandsColl.set(command.data.name, command));
 
     console.log('finished fetching commands');
-    return commands;
+
+    return commandsColl;
 };
 
 export const refreshCommands = async (client: Client, token: string): Promise<void> => {
@@ -49,4 +34,18 @@ export const refreshCommands = async (client: Client, token: string): Promise<vo
     } catch (error) {
         console.error(error);
     }
+};
+
+export const loadEvents = async (client: Client): Promise<void> => {
+    console.log('fetching events');
+
+    Object.values(events).forEach((event) => {
+        if (event.once) {
+            client.once(event.name, async (...args) => await event.execute(...args));
+        } else {
+            client.on(event.name, async (...args) => await event.execute(...args));
+        }
+    });
+
+    console.log('finished fetching events');
 };

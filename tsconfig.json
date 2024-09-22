@@ -1,15 +1,15 @@
 {
     "include": ["src"],
     "compilerOptions": {
-        "target": "esnext",
-        "lib": ["esnext"],
+        "target": "ES2022",
+        "lib": ["ES2022"],
 
         "types": ["node"],
         "allowJs": true,
         "strict": true,
         "skipLibCheck": true,
 
-        "module": "esnext",
+        "module": "ES2022",
         "moduleResolution": "bundler",
         "allowArbitraryExtensions": true,
 

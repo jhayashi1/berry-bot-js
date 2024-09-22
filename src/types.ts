@@ -1,4 +1,4 @@
-import type {ChatInputCommandInteraction, Collection, SlashCommandBuilder, SlashCommandOptionsOnlyBuilder, SlashCommandSubcommandsOnlyBuilder} from 'discord.js';
+import type {ChatInputCommandInteraction, ClientEvents, Collection, Interaction, SlashCommandBuilder, SlashCommandOptionsOnlyBuilder, SlashCommandSubcommandsOnlyBuilder} from 'discord.js';
 import type {Client as DiscordClient} from 'discord.js';
 
 export interface Client extends DiscordClient {
@@ -10,3 +10,8 @@ export interface Command {
     execute: (interaction: ChatInputCommandInteraction) => Promise<void>;
 }
 
+export interface Event {
+    name: keyof ClientEvents;
+    once: boolean;
+    execute: (interaction: Interaction) => Promise<void>;
+}

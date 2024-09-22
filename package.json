@@ -3,9 +3,9 @@
     "version": "0.0.1",
     "description": "",
     "main": "index.ts",
-    "type": "module",
     "scripts": {
         "start": "npx tsx src/index.ts",
+        "build": "node esbuild.config.mjs",
         "lint": "eslint .",
         "types": "tsc --noEmit"
     },
@@ -28,6 +28,7 @@
         "@aws-sdk/types": "^3.649.0",
         "@types/node": "^22.5.5",
         "@typescript-eslint/eslint-plugin": "^8.6.0",
+        "esbuild": "^0.23.1",
         "eslint": "^9.10.0",
         "typescript": "<5.2.0"
     }

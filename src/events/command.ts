@@ -1,0 +1,32 @@
+import {Events, type Interaction} from 'discord.js';
+import type {Client, Command} from '../types';
+import type {Event} from '../types';
+
+const execute = async (interaction: Interaction): Promise<void> => {
+    if (!interaction.isChatInputCommand()) return;
+
+    const client = interaction.client as Client;
+    const command = client.commands?.get(interaction.commandName) as Command;
+
+    if (!command) {
+        console.error(`No command matching ${interaction.commandName} was found.`);
+        return;
+    }
+
+    try {
+        await command.execute(interaction);
+    } catch (error) {
+        console.error(error);
+        if (interaction.replied || interaction.deferred) {
+            await interaction.followUp({content: 'There was an error while executing this command!', ephemeral: true});
+        } else {
+            await interaction.reply({content: 'There was an error while executing this command!', ephemeral: true});
+        }
+    }
+};
+
+export const commandEvent: Event = {
+    name: Events.InteractionCreate,
+    once: false,
+    execute,
+};

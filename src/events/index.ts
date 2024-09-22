@@ -1,0 +1,1 @@
+export {commandEvent} from './command';
