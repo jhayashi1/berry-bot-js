@@ -15,3 +15,31 @@ export interface Event {
     once: boolean;
     execute: (interaction: Interaction) => Promise<void>;
 }
+
+export interface McStatusResp {
+    online: boolean;
+    host: string;
+    port: number;
+    ip_address: string;
+    version: {
+        name_raw: string;
+        name_clean: string;
+        name_html: string;
+        protocol: number;
+    };
+    players: {
+        online: number;
+        max: number;
+        list: {
+            uuid: string;
+            name_raw: string;
+            name_clean: string;
+            name_html: string;
+        }[];
+    };
+    motd: {
+        raw: string;
+        clean: string;
+        html: string;
+    };
+}

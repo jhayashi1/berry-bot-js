@@ -1,7 +1,7 @@
 import {SlashCommandBuilder} from 'discord.js';
 import {DescribeInstancesCommand, EC2Client, StartInstancesCommand, StopInstancesCommand, waitUntilInstanceRunning, type DescribeInstancesCommandOutput} from '@aws-sdk/client-ec2';
 import type {ChatInputCommandInteraction, SlashCommandSubcommandsOnlyBuilder} from 'discord.js';
-import type {Command} from '../types';
+import type {Command, McStatusResp} from '../types';
 import 'dotenv/config';
 
 const ec2 = new EC2Client({region: 'us-east-1'});
@@ -10,6 +10,7 @@ const actions = [
     {name: 'start', description: 'Start game server'},
     {name: 'stop', description: 'Stop game server'},
     {name: 'status', description: 'Get game server status'},
+    {name: 'players', description: 'Get players on minecraft server'},
 ];
 
 const servers = [
@@ -57,6 +58,18 @@ const getInstanceById = async (instanceId: string): Promise<DescribeInstancesCom
     return await ec2.send(new DescribeInstancesCommand({InstanceIds: [instanceId]}));
 };
 
+const getPlayerCount = async (ip: string): Promise<string[] | undefined> => {
+    const apiUrl = `https://api.mcstatus.io/v2/status/java/${ip}:25565`;
+    const resp = await fetch(apiUrl);
+    const json = await resp.json() as McStatusResp;
+
+    if (!json.online) {
+        return undefined;
+    }
+
+    return json.players.list.map((player) => player.name_clean);
+};
+
 const execute = async (interaction: ChatInputCommandInteraction): Promise<void> => {
     const subcommand = interaction.options.getSubcommand();
     const instanceId = interaction.options.getString('target');
@@ -78,11 +91,28 @@ const execute = async (interaction: ChatInputCommandInteraction): Promise<void> 
         const instance = resp.Reservations?.[0].Instances?.[0];
         const state = instance?.State?.Name;
 
-        if (state === 'running') {
-            const ip = instance?.PublicIpAddress;
+        if (instance && state === 'running') {
+            const ip = instance.PublicIpAddress;
             result = `Server is currently running with ip: ${ip}`;
         } else {
             result = `Server is currently in state: ${state}`;
+        }
+    } else if (subcommand === 'players') {
+        const resp = await getInstanceById(instanceId);
+        const instance = resp.Reservations?.[0].Instances?.[0];
+        const state = instance?.State?.Name;
+
+        if (instance && state === 'running') {
+            const ip = instance.PublicIpAddress ?? '';
+            const players = await getPlayerCount(ip);
+
+            if (players) {
+                result = `Server has the following players online: \n${players.map((player) => `\n${player}`)}`;
+            } else {
+                result = 'Could not find players online for server';
+            }
+        } else {
+            result = 'Server is not currently running';
         }
     }
 
