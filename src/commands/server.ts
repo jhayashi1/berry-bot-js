@@ -19,7 +19,7 @@ const servers = [
 ];
 
 const startInstanceAndWait = async (instanceId: string): Promise<string> => {
-    const startResp = await ec2.send(new StartInstancesCommand({InstanceIds: [instanceId], DryRun: true}));
+    const startResp = await ec2.send(new StartInstancesCommand({InstanceIds: [instanceId]}));
     const status = startResp.$metadata.httpStatusCode;
 
     if (status !== 200) {
@@ -43,7 +43,7 @@ const startInstanceAndWait = async (instanceId: string): Promise<string> => {
 };
 
 const stopInstance = async (instanceId: string): Promise<string> => {
-    const resp = await ec2.send(new StopInstancesCommand({InstanceIds: [instanceId], DryRun: true}));
+    const resp = await ec2.send(new StopInstancesCommand({InstanceIds: [instanceId]}));
     const status = resp.$metadata.httpStatusCode;
 
     if (status !== 200) {

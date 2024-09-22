@@ -15,12 +15,12 @@ const execute = async (interaction: Interaction): Promise<void> => {
 
     try {
         await command.execute(interaction);
-    } catch (error) {
-        console.error(error);
+    } catch (e) {
+        console.error(e);
         if (interaction.replied || interaction.deferred) {
-            await interaction.followUp({content: 'There was an error while executing this command!', ephemeral: true});
+            await interaction.followUp({content: `There was an error while executing this command: ${e}`, ephemeral: true});
         } else {
-            await interaction.reply({content: 'There was an error while executing this command!', ephemeral: true});
+            await interaction.reply({content: `There was an error while executing this command: ${e}`, ephemeral: true});
         }
     }
 };

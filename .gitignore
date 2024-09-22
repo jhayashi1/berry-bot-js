@@ -1,8 +1,12 @@
 node_modules
-.env
-.vscode
 dist
 
+.vscode
+.env
+
+deploy.sh
+
+*.tar.gz
 **/.terraform/*
 *.terraform.lock.hcl
 *.tfstate
