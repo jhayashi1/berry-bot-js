@@ -1,6 +1,6 @@
 import {Collection} from 'discord.js';
 import {REST, Routes} from 'discord.js';
-import type {Client, Command, Event} from './types';
+import type {Client, Command} from './types';
 import * as commands from './commands/index';
 import * as events from './events/index';
 
