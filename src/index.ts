@@ -1,11 +1,8 @@
-import 'dotenv/config';
 import {Client as DiscordClient, Events, GatewayIntentBits} from 'discord.js';
 import {loadCommands, loadEvents, refreshCommands} from './utils';
 import type {Client} from './types';
 
-const token = process.env.TOKEN ?? '';
-
-const initClient = async (): Promise<void> => {
+export const initClient = async (token: string): Promise<void> => {
     const client: Client = new DiscordClient({intents: [GatewayIntentBits.MessageContent, GatewayIntentBits.Guilds]});
     client.commands = await loadCommands();
     await loadEvents(client);
@@ -20,7 +17,8 @@ const initClient = async (): Promise<void> => {
 };
 
 try {
-    initClient();
+    const token = process.env.TOKEN ?? '';
+    initClient(token);
 } catch (e) {
     console.error(e);
 }

@@ -2,7 +2,6 @@ import {SlashCommandBuilder} from 'discord.js';
 import {DescribeInstancesCommand, EC2Client, StartInstancesCommand, StopInstancesCommand, waitUntilInstanceRunning, type DescribeInstancesCommandOutput} from '@aws-sdk/client-ec2';
 import type {ChatInputCommandInteraction, SlashCommandSubcommandsOnlyBuilder} from 'discord.js';
 import type {Command, McStatusResp} from '../types';
-import 'dotenv/config';
 
 const ec2 = new EC2Client({region: 'us-east-1'});
 

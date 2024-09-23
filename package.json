@@ -4,7 +4,8 @@
     "description": "",
     "main": "index.ts",
     "scripts": {
-        "start": "npx tsx src/index.ts",
+        "start": "npx tsx --env-file=.env.local src/index.ts",
+        "start:prod": "npx tsx --env-file=.env src/index.ts",
         "build": "node esbuild.config.mjs",
         "lint": "eslint .",
         "types": "tsc --noEmit"
@@ -20,8 +21,7 @@
     },
     "dependencies": {
         "@aws-sdk/client-ec2": "^3.651.1",
-        "discord.js": "^14.16.2",
-        "dotenv": "^16.4.5"
+        "discord.js": "^14.16.2"
     },
     "homepage": "https://github.com/jhayashi1/berry-bot-js#readme",
     "devDependencies": {

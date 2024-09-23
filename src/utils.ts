@@ -4,8 +4,6 @@ import type {Client, Command} from './types';
 import * as commands from './commands/index';
 import * as events from './events/index';
 
-import 'dotenv/config';
-
 export const loadCommands = async (): Promise<Collection<string, Command>> => {
     const commandsColl = new Collection<string, Command>();
 
