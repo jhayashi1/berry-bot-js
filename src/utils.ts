@@ -22,10 +22,14 @@ export const refreshCommands = async (client: Client, token: string): Promise<vo
     try {
         console.log(`Started refreshing ${client.commands?.size} application (/) commands.`);
         const commands: Command[] = Array.from(client.commands?.values() as IterableIterator<Command> ?? []);
+        const body = commands.map((command: Command) => command.data.toJSON());
+        const appId = process.env.APPLICATION_ID ?? '';
+        const guildId = process.env.GUILD_ID ?? '';
+        const routeAction = guildId ? Routes.applicationGuildCommands(appId, guildId) : Routes.applicationCommands(appId);
 
         const data = await rest.put(
-            Routes.applicationCommands(process.env.APPLICATION_ID ?? ''),
-            {body: commands.map((command: Command) => command.data.toJSON())}
+            routeAction,
+            {body}
         ) as unknown[];
 
         console.log(`Successfully reloaded ${data.length} application (/) commands.`);
